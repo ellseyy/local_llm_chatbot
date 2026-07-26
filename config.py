@@ -8,9 +8,8 @@ class Settings(BaseSettings):
     max_tokens: int = 1000
     sqlite_path: str = "logs.db"
     request_timeout_sec: int = 30
-
+    ollama_url: str = "http://127.0.0.1:11434"  
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
-
 
 settings = Settings()

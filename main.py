@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from config import settings
 from datetime import datetime, timezone
 import time
@@ -38,7 +38,7 @@ START_TIME = time.time()
 
 async def check_ollama() -> tuple[bool, str]:
 
-    url = "http://localhost:11434/" 
+    url = f"{settings.ollama_url}/"
     
     try:
         async with httpx.AsyncClient(timeout=2.0) as client:
@@ -100,26 +100,65 @@ async def chat_endpoint(request: ChatRequest):
             "num_predict": request.maxTokens 
         }
     }
+    
+    response_text = ""
+    status = "ok"
+    error_msg = ""
+
     try:
-       
         async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post("http://localhost:11434/api/chat", json=payload)
+            response = await client.post(f"{settings.ollama_url}/api/chat", json=payload)
             
             if response.status_code == 200:
                 data = response.json()
                 response_text = data["message"]["content"]
-                status = "ok"
-                error_msg = ""
             else:
-                response_text = ""
                 status = "degraded"
                 error_msg = f"Ollama error: {response.status_code}"
                 
-    except Exception as e:
-        response_text = ""
+                latency_ms = int((time.time() - start_time) * 1000)
+                log_request({
+                    "id": req_id,
+                    "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "route": "/chat",
+                    "status": status,
+                    "backend": settings.backend,
+                    "model": settings.model,
+                    "latency_ms_total": latency_ms,
+                    "input_chars": len(prompt_text),
+                    "output_chars": 0,
+                    "temperature": request.temperature,
+                    "max_tokens": request.maxTokens,
+                    "prompt_preview": prompt_text[:200],
+                    "response_preview": "",
+                    "error_message": error_msg
+                })
+                
+                raise HTTPException(status_code=502, detail=error_msg)
+                
+    except httpx.RequestError as e:
         status = "degraded"
         error_msg = "model not available"
-
+        
+        latency_ms = int((time.time() - start_time) * 1000)
+        log_request({
+            "id": req_id,
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "route": "/chat",
+            "status": status,
+            "backend": settings.backend,
+            "model": settings.model,
+            "latency_ms_total": latency_ms,
+            "input_chars": len(prompt_text),
+            "output_chars": 0,
+            "temperature": request.temperature,
+            "max_tokens": request.maxTokens,
+            "prompt_preview": prompt_text[:200],
+            "response_preview": "",
+            "error_message": error_msg
+        })
+        
+        raise HTTPException(status_code=503, detail="Ollama service is unavailable")
 
     latency_ms = int((time.time() - start_time) * 1000)
     log_data = { 
