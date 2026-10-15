@@ -2,7 +2,9 @@
 
 A minimal full-stack chat application featuring a custom frontend with light interface, native markdown rendering, code syntax highlighting, and copy controls, a Python backend API, and a locally hosted LLM via Ollama.
 
-![Interface Overview](docs/app-preview.png)
+<p align="center">
+  <img src="docs/app-preview.png" alt="Interface Overview" width="550" />
+</p>
 
 ## Overview
 
@@ -16,12 +18,16 @@ The system consists of three decoupled layers:
 ### Code Presentation & One-Click Copy
 Syntax-highlighted code blocks styled in One Light theme with language detection and a compact status-reactive copy trigger.
 
-![Code Syntax Preview](docs/code-preview.png)
+<p align="center">
+  <img src="docs/code-preview.png" alt="Code Syntax Preview" width="650" />
+</p>
 
 ### Formatted Data Tables
 Clean table views with border separation, header indicators, horizontal overflow scrolling, and a dedicated table markdown copy button.
 
-![Table View Preview](docs/table-preview.png)
+<p align="center">
+  <img src="docs/table-preview.png" alt="Table View Preview" width="650" />
+</p>
 
 ## Prerequisites
 
